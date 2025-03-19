@@ -313,7 +313,7 @@ The `.env` file contains key-value pairs that specify various settings for the d
 7. **Global setting**
    - `GLOBAL_URI`: by default `host.docker.internal` for Windows users but `172.17.0.1` can be used for linux user
 
-> The `GLOBAL_URI` environment variable allows to use the same type of URI through the localhost machine and inside the docker environment instead of using localhost on the local machien and the `name:port` in the docker container.
+> The `GLOBAL_URI` environment variable allows to use the same type of URI through the localhost machine and inside the docker environment instead of using localhost on the local machine and the `name:port` in the docker container.
 
 #### Usage
 
