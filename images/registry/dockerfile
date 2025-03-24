@@ -9,4 +9,4 @@ RUN npm install -g pnpm
 RUN pnpm install
 
 # Command to run the application
-CMD ["sh", "-c", "npm run db:init && npm run build && npm run start"]
+CMD ["sh", "-c", "npm run clone:reference-models && npm run db:init && npm run build && npm run start"]

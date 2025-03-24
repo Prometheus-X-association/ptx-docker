@@ -13,5 +13,6 @@ COPY .env ./.env
 COPY images/mongodb-seed/template/ ./images/mongodb-seed/template/
 # Make the script executable
 RUN chmod +x ./prepare-seed.sh
+RUN sed -i 's/\r$//' prepare-seed.sh
 # Command to execute the script and format the output
 CMD ["bash", "-c", "./prepare-seed.sh"]

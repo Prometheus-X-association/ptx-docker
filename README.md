@@ -614,13 +614,30 @@ cp ./images/provider-pdc/config.production.json ../your-connector-directory/src/
 > <details><summary>Using docker</summary>
 >
 > ```bash
+> # copy the .env.production into you local pdc directory
+> cp ./images/provider-pdc/.env.production ../your-connector-directory/.env
+> ```
+>
+> Depending on which mongodb database you want to use, you will need to update the connector docker compose or .env :
+> 
+> - If you use the mongodb container from the ptx-docker project comment the mongodb service inside the pdc docker-compose
+> - If you use the mongodb container from the pdc docker compose change the .env.production MONGO_URI=mongodb://ptx-mongodb:27017/ptx-provider variable to MONGO_URI=mongodb://mongodb:27017/ptx-provider
+> 
+> Update the ports to match the port predefine for the provider pdc inside the docker-compose.yml of the connector
+> ```yaml
+>     ports:
+>     - 3333:${PORT}
+> ```
+> 
+> 
+> ```bash
 > # in your local pdc directory
 > docker compose up -d --build
 > ```
 >
 > ```bash
 > # add container to network
-> docker network connecto ptx-main dataspace-connector
+> docker network connect ptx-main dataspace-connector
 > ```
 >
 > </details>
@@ -665,13 +682,30 @@ cp ./images/infrastructure-pdc/config.production.json ../your-connector-director
 > <details><summary>Using docker</summary>
 >
 > ```bash
+> # copy the .env.production into you local pdc directory
+> cp ./images/infrastructure-pdc/.env.production ../your-connector-directory/.env
+> ```
+>
+> Depending on which mongodb database you want to use, you will need to update the connector docker compose or .env :
+>
+> - If you use the mongodb container from the ptx-docker project comment the mongodb service inside the pdc docker-compose
+> - If you use the mongodb container from the pdc docker compose change the .env.production MONGO_URI=mongodb://ptx-mongodb:27017/ptx-infrastructure variable to MONGO_URI=mongodb://mongodb:27017/ptx-infrastructure
+>
+> Update the ports to match the port predefine for the infrastructure pdc inside the docker-compose.yml of the connector
+> ```yaml
+>     ports:
+>     - 3337:${PORT}
+> ```
+>
+>
+> ```bash
 > # in your local pdc directory
 > docker compose up -d --build
 > ```
 >
 > ```bash
 > # add container to network
-> docker network connecto ptx-main dataspace-connector
+> docker network connect ptx-main dataspace-connector
 > ```
 >
 > </details>
@@ -716,13 +750,30 @@ cp ./images/consumer-pdc/config.production.json ../your-connector-directory/src/
 > <details><summary>Using docker</summary>
 >
 > ```bash
+> # copy the .env.production into you local pdc directory
+> cp ./images/consumer-pdc/.env.production ../your-connector-directory/.env
+> ```
+>
+> Depending on which mongodb database you want to use, you will need to update the connector docker compose or .env :
+>
+> - If you use the mongodb container from the ptx-docker project comment the mongodb service inside the pdc docker-compose
+> - If you use the mongodb container from the pdc docker compose change the .env.production MONGO_URI=mongodb://ptx-mongodb:27017/ptx-consumer variable to MONGO_URI=mongodb://mongodb:27017/ptx-consumer
+>
+> Update the ports to match the port predefine for the consumer pdc inside the docker-compose.yml of the connector
+> ```yaml
+>     ports:
+>     - 3335:${PORT}
+> ```
+>
+>
+> ```bash
 > # in your local pdc directory
 > docker compose up -d --build
 > ```
 >
 > ```bash
 > # add container to network
-> docker network connecto ptx-main dataspace-connector
+> docker network connect ptx-main dataspace-connector
 > ```
 >
 > </details>
