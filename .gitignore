@@ -1,4 +1,5 @@
 /images/mongodb-seed/init/catalog.representations.json
+/images/mongodb-seed/init/catalog.infrastructureservices.json
 /images/mongodb-seed/init/catalog.ecosystems.json
 /images/mongodb-seed/init/catalog.serviceofferings.json
 /images/mongodb-seed/init/catalog.softwareresources.json

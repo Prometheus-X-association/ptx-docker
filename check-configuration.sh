@@ -79,6 +79,7 @@ consumer_api_database=$(extract_port 'CONSUMER_API_DATABASE')
 infrastructure_api_port=$(extract_port 'INFRASTRUCTURE_API_PORT')
 infrastructure_api_database=$(extract_port 'INFRASTRUCTURE_API_DATABASE')
 general_uri=$(extract_port 'GENERAL_URI')
+catalog_api_url=$(extract_port 'CATALOG_API_URL')
 
 mongodb=$(extract_port 'MONGODB_DOCKER_NAME')
 mongodb_port=$(extract_port 'MONGODB_DOCKER_PORT')
@@ -112,6 +113,17 @@ fi
 
 # Construct the expected catalogUri
 expected_contract_uri="http://$general_uri:$contract_port"
+
+# Construct the expected CATALOG_API_URL
+expected_catalog_api_uri="http://$general_uri:$catalog_port"
+if [ -n "$catalog_api_port" ]; then
+  if [[ "$catalog_api_port" != /* ]]; then
+    expected_catalog_api_uri+="/$catalog_api_port"
+  else
+    expected_catalog_api_uri+="$catalog_api_port"
+  fi
+fi
+
 
 # Construct the expected catalogUri
 expected_consumer_endpoint_uri="http://$general_uri:$consumer_port/"
@@ -256,6 +268,11 @@ fi
 if [ "$actual_infrastructure_api_mongodb_uri" != "$expected_infrastructure_api_mongo_uri" ]; then
     echo -e "\033[1;34mUpdating MONGO_URI in ./images/example-api/.env.infrastructure to match expected format:$expected_infrastructure_api_mongo_uri\033[0m"
     sed -i "s|MONGO_URI=.*$|MONGO_URI=$expected_infrastructure_api_mongo_uri|" ./images/example-api/.env.infrastructure
+fi
+
+if [ "$catalog_api_url" != "$expected_catalog_api_uri" ]; then
+    echo -e "\033[1;34mUpdating CATALOG_API_URL in .env to match expected format:$expected_catalog_api_uri\033[0m"
+    sed -i "s|CATALOG_API_URL=.*$|CATALOG_API_URL=$expected_catalog_api_uri|" ./.env
 fi
 
 echo -e "✅ \033[1;32m Configuration check passed\033[0m"

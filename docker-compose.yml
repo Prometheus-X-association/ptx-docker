@@ -14,25 +14,11 @@ services:
     networks:
       - ptx-main
 
-  template-preprocessor:
-    container_name: "template-preprocessor"
-    build:
-      context: .
-      dockerfile: ./images/template-preprocessor/dockerfile
-    volumes:
-      - ./images/mongodb-seed/init:/app/images/mongodb-seed/init
-      - ./images/mongodb-seed/template:/app/images/mongodb-seed/template
-      - ./.env:/app/.env
-    profiles:
-      - db
-    networks:
-      - ptx-main
-
   mongodb-seed:
     container_name: ${MONGODB_SEED_DOCKER_NAME}
     build:
-      context: ./images/mongodb-seed
-      dockerfile: dockerfile
+      context: .
+      dockerfile: ./images/mongodb-seed/dockerfile
     environment:
       CATALOG_REGISTRY_MONGO_DATABASE: ${CATALOG_REGISTRY_MONGO_DATABASE}
       CATALOG_MONGO_DATABASE: ${CATALOG_MONGO_DATABASE}
@@ -44,8 +30,11 @@ services:
       CONSUMER_API_DATABASE: ${CONSUMER_API_DATABASE}
     depends_on:
       - mongodb
-      - template-preprocessor
-    restart: no
+    restart: on-failure:5
+    volumes:
+      - ./images/mongodb-seed/init:/app/images/mongodb-seed/init
+      - ./images/mongodb-seed/template:/app/images/mongodb-seed/template
+      - ./.env:/app/.env
     profiles:
       - db
     networks:
