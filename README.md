@@ -265,6 +265,11 @@ The `.env` file is a very important element of the PTX-Docker project, as it def
 >
 > If you do not completely restart your images, you will encounter issues concerning a missmatch between the routing from your .env and the routing defined in the endpoints referenced by the contracts / entities.
 
+> When operating .env changes, remember to run the check-configuration script to verify your changes
+> ```bash
+> ./check-configuration.sh
+> ```
+
 #### Structure of the .env File
 
 The `.env` file contains key-value pairs that specify various settings for the different services in the ecosystem. Below are the main sections and variables defined in the `.env` file:
