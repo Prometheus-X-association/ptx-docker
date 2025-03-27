@@ -261,6 +261,10 @@ If any issues are found, the script will output error messages indicating what n
 
 The `.env` file is a very important element of the PTX-Docker project, as it defines the environment variables used by the various services in the Docker Compose configuration. These variables allow for easy configuration and customization of the ecosystem without modifying the source code directly.
 
+> The .env.sample and following examples were built in an environment using window's docker desktop environment, which includes the use of `host.docker.internal` routing. This routing is not available in Linux-based environments, therefore if you change your .env configuration to replace to `127.0.0.1`, you need to ensure to refresh all your images in order for the seeding to take into account your routing changes.
+>
+> If you do not completely restart your images, you will encounter issues concerning a missmatch between the routing from your .env and the routing defined in the endpoints referenced by the contracts / entities.
+
 #### Structure of the .env File
 
 The `.env` file contains key-value pairs that specify various settings for the different services in the ecosystem. Below are the main sections and variables defined in the `.env` file:
@@ -535,7 +539,7 @@ curl -X POST http://host.docker.internal:3333/consumer/exchange \
 
 ```bash
 # Trigger exchange from the data consumer / service provider's side
-curl -X POST http://host.docker.internal:3333/consumer/exchange \
+curl -X POST http://host.docker.internal:3335/consumer/exchange \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer  ${JWT_TOKEN}" \
   -d '{
@@ -543,19 +547,6 @@ curl -X POST http://host.docker.internal:3333/consumer/exchange \
     "purposeId": "http://host.docker.internal:4040/v1/catalog/serviceofferings/66d18b79ee71f9f096baecb0",
     "resourceId": "http://host.docker.internal:4040/v1/catalog/serviceofferings/66d187f4ee71f9f096bae8ca",
     "dataProcessingId": "673ddc30f24a55c6c43b3e88"
-  }'
-```
-
-```bash
-# Trigger exchange on consumer side
-curl -X POST http://host.docker.internal:3333/consumer/exchange \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer ${JWT_TOKEN}" \
-  -d '{
-    "contract": "http://host.docker.internal:8888/contracts/67222aee85539771002f0abf",
-    "purposeId": "http://host.docker.internal:4040/v1/catalog/serviceofferings/66d18b79ee71f9f096baecb0",
-    "resourceId": "http://host.docker.internal:4040/v1/catalog/serviceofferings/66d187f4ee71f9f096bae8ca",
-    "dataProcessingId": "673ddca9db3b1ce116aec429"
   }'
 ```
 
