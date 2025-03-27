@@ -254,6 +254,15 @@ If any issues are found, the script will output error messages indicating what n
 
 The `.env` file is a very important element of the PTX-Docker project, as it defines the environment variables used by the various services in the Docker Compose configuration. These variables allow for easy configuration and customization of the ecosystem without modifying the source code directly.
 
+> The .env.sample and following examples were built in an environment using window's docker desktop environment, which includes the use of `host.docker.internal` routing. This routing is not available in Linux-based environments, therefore if you change your .env configuration to replace to `127.0.0.1`, you need to ensure to refresh all your images in order for the seeding to take into account your routing changes.
+>
+> If you do not completely restart your images, you will encounter issues concerning a missmatch between the routing from your .env and the routing defined in the endpoints referenced by the contracts / entities.
+
+> When operating .env changes, remember to run the check-configuration script to verify your changes
+> ```bash
+> ./check-configuration.sh
+> ```
+
 #### Structure of the .env File
 
 The `.env` file contains key-value pairs that specify various settings for the different services in the ecosystem. Below are the main sections and variables defined in the `.env` file:
@@ -544,7 +553,7 @@ To run a Service Chain-based exchange, you can do so by running one of the follo
 2. Connect as the data provider or data consumer to his related PDC to retrieve the JWT as you will need it to authenticate these requests.
 
 ```bash
-# Trigger exchange from the data consumer / service provider's side
+# Trigger exchange from the data consumer / service provider's side with dataProcessingId 673ddc30f24a55c6c43b3e88
 curl -X POST http://$GENERAL_URI:$PROVIDER_PDC_BINDING_PORT/consumer/exchange \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
@@ -557,7 +566,7 @@ curl -X POST http://$GENERAL_URI:$PROVIDER_PDC_BINDING_PORT/consumer/exchange \
 ```
 
 ```bash
-# Trigger exchange on consumer side
+# Trigger exchange from the data consumer / service provider's side with dataProcessingId 673ddca9db3b1ce116aec429
 curl -X POST http://$GENERAL_URI:$PROVIDER_PDC_BINDING_PORT/consumer/exchange \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
@@ -957,7 +966,6 @@ curl -X GET http://$GENERAL_URI:$PROVIDER_PDC_BINDING_PORT/dataexchanges/67c60fc
 > 	}
 > }
 > ```
->
 > </details>
 
 > You can log the data exchange on all connector, the data exchange is synchronize through all the connector used during the exchange
