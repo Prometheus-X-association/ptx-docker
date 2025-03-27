@@ -1,34 +1,40 @@
+# Stage 1: Build & Prepare Data
+FROM debian:bullseye-slim AS builder
+
+RUN apt-get update && \
+    apt-get install -y gettext dos2unix jq && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy scripts and templates
+COPY prepare-seed.sh ./prepare-seed.sh
+COPY .env ./.env
+COPY images/mongodb-seed/template/ ./images/mongodb-seed/template/
+
+# Make the script executable and convert line endings
+RUN chmod +x ./prepare-seed.sh && dos2unix ./prepare-seed.sh
+
+# Stage 2: Final MongoDB Image
 FROM mongo
 
-#database from .env
-ARG CATALOG_REGISTRY_MONGO_DATABASE
-ARG CATALOG_MONGO_DATABASE
-ARG CONTRACT_MONGO_DATABASE
-ARG CONSENT_MONGO_DATABASE
-ARG PROVIDER_PDC_DATABASE
-ARG CONSUMER_PDC_DATABASE
-ARG PROVIDER_API_DATABASE
-ARG CONSUMER_API_DATABASE
+WORKDIR /app
 
-#Copy the content of the init directory to the root
-COPY ./init/ /
+# Install gettext for envsubst
+RUN apt-get update && apt-get install -y gettext && rm -rf /var/lib/apt/lists/*
 
-#import json into collections
-CMD mongoimport --host mongodb --db $CATALOG_MONGO_DATABASE --collection organizationadmins --type json --file /catalog.organizationadmins.json --jsonArray && \
-mongoimport --host mongodb --db $CATALOG_MONGO_DATABASE --collection globaldatatypes --type json --file /catalog.globaldatatypes.json --jsonArray && \
-mongoimport --host mongodb --db $CATALOG_MONGO_DATABASE --collection globalpurposes --type json --file /catalog.globalpurposes.json --jsonArray && \
-mongoimport --host mongodb --db $CATALOG_MONGO_DATABASE --collection participants --type json --file /catalog.participants.json --jsonArray && \
-mongoimport --host mongodb --db $CATALOG_MONGO_DATABASE --collection dataresources --type json --file /catalog.dataresources.json --jsonArray && \
-mongoimport --host mongodb --db $CATALOG_MONGO_DATABASE --collection softwareresources --type json --file /catalog.softwareresources.json --jsonArray && \
-mongoimport --host mongodb --db $CATALOG_MONGO_DATABASE --collection ecosystems --type json --file /catalog.ecosystems.json --jsonArray && \
-mongoimport --host mongodb --db $CATALOG_MONGO_DATABASE --collection representations --type json --file /catalog.representations.json --jsonArray && \
-mongoimport --host mongodb --db $CATALOG_MONGO_DATABASE --collection serviceofferings --type json --file /catalog.serviceofferings.json --jsonArray && \
-mongoimport --host mongodb --db $CATALOG_MONGO_DATABASE --collection infrastructureservices --type json --file /catalog.infrastructureservices.json --jsonArray && \
-mongoimport --host mongodb --db $CONTRACT_MONGO_DATABASE --collection contracts --type json --file /contract.contracts.json --jsonArray && \
-mongoimport --host mongodb --db $CONSENT_MONGO_DATABASE --collection participants --type json --file /consent.participants.json --jsonArray && \
-mongoimport --host mongodb --db $CONSENT_MONGO_DATABASE --collection users --type json --file /consent.users.json --jsonArray && \
-mongoimport --host mongodb --db $CONSENT_MONGO_DATABASE --collection useridentifiers --type json --file /consent.useridentifiers.json --jsonArray && \
-mongoimport --host mongodb --db $PROVIDER_PDC_DATABASE --collection users --type json --file /provider.users.json --jsonArray && \
-mongoimport --host mongodb --db $CONSUMER_PDC_DATABASE --collection users --type json --file /consumer.users.json --jsonArray && \
-mongoimport --host mongodb --db $PROVIDER_API_DATABASE --collection users --type json --file /example-api.users.json --jsonArray && \
-mongoimport --host mongodb --db $CONSUMER_API_DATABASE --collection users --type json --file /example-api.users.json --jsonArray
+# Copy the init directory
+COPY ./images/mongodb-seed/init/ /init/
+
+# Copy the prepared JSON files
+COPY --from=builder /app/images/mongodb-seed/template/ /app/images/mongodb-seed/template/
+
+# Copy the script from the builder stage
+COPY --from=builder /app/prepare-seed.sh /app/prepare-seed.sh
+
+# Ensure the script is executable
+RUN chmod +x /app/prepare-seed.sh
+
+# Execute the script on container start
+CMD ["/bin/bash", "-c", "/app/prepare-seed.sh"]

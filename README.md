@@ -48,7 +48,6 @@ graph TD
     H[provider-pdc]
     I[consumer-pdc]
     J[example API: provider-api]
-    K[template-preprocessor]
     L[example API: consumer-api]
     N[infrastructure-pdc]
     M[example API: infrastructure-api]
@@ -56,7 +55,6 @@ graph TD
     subgraph db
         B
         C
-        K
     end
 
     subgraph Core
@@ -83,7 +81,6 @@ graph TD
 
     B -->|Stores Data| O[mongodb_data]
     C -->|Seed| B
-    K -->|Process template seed| C
     D --> B
     E --> B
     F --> B
@@ -115,50 +112,46 @@ The `docker-compose.yml` file defines the services that make up the application.
 
 2. **mongodb-seed**:
 
+   - Processes templates for seed data initialization.
    - Initializes the MongoDB database with seed data.
    - Depends on the `mongodb` service to be running.
 
-3. **template-preprocessor**:
-
-   - Processes templates for seed data initialization.
-   - Depends on the `mongodb-seed` service to be running.
-
-4. [**catalog-registry**](https://github.com/Prometheus-X-association/catalog-registry):
+3. [**catalog-registry**](https://github.com/Prometheus-X-association/catalog-registry):
 
    - The registry of reference models used in the ecosystem.
    - Exposes ports defined by `CATALOG_REGISTRY_BINDING_PORT` and `CATALOG_REGISTRY_PORT`.
 
-5. [**catalog-api**](https://github.com/Prometheus-X-association/catalog-api):
+4. [**catalog-api**](https://github.com/Prometheus-X-association/catalog-api):
 
    - Provides an API for accessing catalog data.
    - Exposes ports defined by `CATALOG_BINDING_PORT` and `CATALOG_PORT`.
 
-6. [**contract-manager**](https://github.com/Prometheus-X-association/contract-manager):
+5. [**contract-manager**](https://github.com/Prometheus-X-association/contract-manager):
 
    - Manages contracts.
    - Exposes ports defined by `CONTRACT_BINDING_PORT` and `CONTRACT_SERVER_PORT`.
 
-7. [**consent-manager**](https://github.com/Prometheus-X-association/consent-manager):
+6. [**consent-manager**](https://github.com/Prometheus-X-association/consent-manager):
 
    - Handles user consent management.
    - Exposes ports defined by `CONSENT_BINDING_PORT` and `CONSENT_PORT`.
 
-8. [**provider-pdc**](https://github.com/Prometheus-X-association/dataspace-connector):
+7. [**provider-pdc**](https://github.com/Prometheus-X-association/dataspace-connector):
 
    - Represents the data provider service.
    - Exposes ports defined by `PROVIDER_PDC_BINDING_PORT` and `PROVIDER_PDC_PORT`.
 
-9. [**consumer-pdc**](https://github.com/Prometheus-X-association/dataspace-connector):
+8. [**consumer-pdc**](https://github.com/Prometheus-X-association/dataspace-connector):
 
    - Represents the service provider / data consumer.
    - Exposes ports defined by `CONSUMER_PDC_BINDING_PORT` and `CONSUMER_PDC_PORT`.
 
-10. [**infrastructure-pdc**](https://github.com/Prometheus-X-association/dataspace-connector):
+9. [**infrastructure-pdc**](https://github.com/Prometheus-X-association/dataspace-connector):
 
     - Represents the infrastructure service provider.
     - Exposes ports defined by `INFRASTRUCTURE_PDC_BINDING_PORT` and `INFRASTRUCTURE_PDC_PORT`.
 
-11. [**example-api**](https://github.com/VisionsOfficial/sandbox-participant.git)( consumer-api/provider-api/infrastructure-api):
+10. [**example-api**](https://github.com/VisionsOfficial/sandbox-participant.git)( consumer-api/provider-api/infrastructure-api):
     - Simulates a very simple API Service that a Data / Service provider would run and provide to the dataspace.
     - Provides an API for infrastructure services.
     - Exposes ports defined by `INFRASTRUCTURE_API_BINDING_PORT` and `INFRASTRUCTURE_API_PORT`.
@@ -184,7 +177,7 @@ Profiles can be combined to run multiple configurations at once.
 
 2. **Database Profile**
 
-   - This profile includes the database-related services, primarily the `mongodb`, `template-preprocessor` and `mongodb-seed` services. It is useful for initializing and managing the database without starting the entire ecosystem of services.
+   - This profile includes the database-related services, primarily the `mongodb` and `mongodb-seed` services. It is useful for initializing and managing the database without starting the entire ecosystem of services.
    - To run the database profile, use the following command:
 
      ```bash
@@ -376,6 +369,17 @@ The seed data is organized into several JSON files located in the `ptx-docker/im
 
 The seed data is automatically loaded into the MongoDB database using the provided templates, which are processed to match the variables defined in the `.env` file.
 
+> Before using the curl command you can set the variable in your terminal to easily interact with the curl command
+> 
+> ```shell
+> #example from the .env.sample use yours if you have made modification
+> GENERAL_URI=host.docker.internal
+> CATALOG_BINDING_PORT=4040
+> CONTRACT_BINDING_PORT=8888
+> PROVIDER_PDC_BINDING_PORT=3333
+> CONSUMER_PDC_BINDING_PORT=3335
+> ```
+
 #### Catalog
 
 ##### Participant
@@ -388,7 +392,7 @@ Three participants are created in the catalog following the seeding of data, you
 
 ```bash
 # Login as the data provider
-curl -X POST http://host.docker.internal:4040/v1/auth/login \
+curl -X POST http://$GENERAL_URI:$CATALOG_BINDING_PORT/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "provider@yopmail.com",
@@ -398,7 +402,7 @@ curl -X POST http://host.docker.internal:4040/v1/auth/login \
 
 ```bash
 # Login as the data consumer / service provider
-curl -X POST http://host.docker.internal:4040/v1/auth/login \
+curl -X POST http://$GENERAL_URI:$CATALOG_BINDING_PORT/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "consumer@yopmail.com",
@@ -408,7 +412,7 @@ curl -X POST http://host.docker.internal:4040/v1/auth/login \
 
 ```bash
 # Login as the infrastructure service provider
-curl -X POST http://host.docker.internal:4040/v1/auth/login \
+curl -X POST http://$GENERAL_URI:$CATALOG_BINDING_PORT/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "infrastructure@yopmail.com",
@@ -424,25 +428,25 @@ With the seeding of data, there is also some contracts that are pre-generated, a
 
 ```bash
 # Get a contract
-curl -X GET http://host.docker.internal:8888/contracts/67222aee85539771002f0abf \
+curl -X GET http://$GENERAL_URI:$CONTRACT_BINDING_PORT/contracts/67222aee85539771002f0abf \
   -H "Content-Type: application/json"
 ```
 
 ```bash
 # Contracts for the data provider
-curl -X GET http://host.docker.internal:8888/contracts/for/aHR0cDovL2hvc3QuZG9ja2VyLmludGVybmFsOjQwNDAvdjEvY2F0YWxvZy9wYXJ0aWNpcGFudHMvNjZkMTg3MjRlZTcxZjlmMDk2YmFlODEw \
+curl -X GET http://$GENERAL_URI:$CONTRACT_BINDING_PORT/contracts/for/aHR0cDovL2hvc3QuZG9ja2VyLmludGVybmFsOjQwNDAvdjEvY2F0YWxvZy9wYXJ0aWNpcGFudHMvNjZkMTg3MjRlZTcxZjlmMDk2YmFlODEw \
   -H "Content-Type: application/json"
 ```
 
 ```bash
 # Contracts for the data consumer / service provider
-curl -X GET http://host.docker.internal:8888/contracts/for/aHR0cDovL2hvc3QuZG9ja2VyLmludGVybmFsOjQwNDAvdjEvY2F0YWxvZy9wYXJ0aWNpcGFudHMvNjZkMThhMWRlZTcxZjlmMDk2YmFlYzA4 \
+curl -X GET http://$GENERAL_URI:$CONTRACT_BINDING_PORT/contracts/for/aHR0cDovL2hvc3QuZG9ja2VyLmludGVybmFsOjQwNDAvdjEvY2F0YWxvZy9wYXJ0aWNpcGFudHMvNjZkMThhMWRlZTcxZjlmMDk2YmFlYzA4 \
   -H "Content-Type: application/json"
 ```
 
 ```bash
 # Contracts for the infrastructure service provider
-curl -X GET http://host.docker.internal:8888/contracts/for/aHR0cDovL2hvc3QuZG9ja2VyLmludGVybmFsOjQwNDAvdjEvY2F0YWxvZy9wYXJ0aWNpcGFudHMvNjU2NGFhZWJkODUzZThlMDViMTMxN2Mw \
+curl -X GET http://$GENERAL_URI:$CONTRACT_BINDING_PORT/contracts/for/aHR0cDovL2hvc3QuZG9ja2VyLmludGVybmFsOjQwNDAvdjEvY2F0YWxvZy9wYXJ0aWNpcGFudHMvNjU2NGFhZWJkODUzZThlMDViMTMxN2Mw \
   -H "Content-Type: application/json"
 ```
 
@@ -454,7 +458,7 @@ To use the connector of a participant inside the docker container, you need to b
 
 ```bash
 # Login as the data provider
-curl -X POST http://host.docker.internal:3333/login \
+curl -X POST http://$GENERAL_URI:$PROVIDER_PDC_BINDING_PORT/login \
   -H "Content-Type: application/json" \
   -d '{
     "serviceKey": "MLLgUPxnnZLxOAu5tbl_p9Bx_GKJFWJLVkic4jHOirGJjD_6zEbzcCosAhCw7zV_VA9fPYy_vdRkZLuebUAUoQgjAPZGPuI9zaXg",
@@ -464,7 +468,7 @@ curl -X POST http://host.docker.internal:3333/login \
 
 ```bash
 # Login as the data consumer / service provider
-curl -X POST http://host.docker.internal:3335/login \
+curl -X POST http://$GENERAL_URI:$CONSUMER_PDC_BINDING_PORT/login \
   -H "Content-Type: application/json" \
   -d '{
     "serviceKey": "Gr31PY4J2SRCPdqS5eaGQPEB1Bk5WnucLE1heYoEm1DuwjnpPcOhhosS2s1hh1i9uVorj1GcN0kFLDfWC92TTx0iIaUBzs1UBmp1",
@@ -474,12 +478,31 @@ curl -X POST http://host.docker.internal:3335/login \
 
 ```bash
 # Login as the infrastructure service provider
-curl -X POST http://host.docker.internal:3337/login \
+curl -X POST http://$GENERAL_URI:3337/login \
   -H "Content-Type: application/json" \
   -d '{
     "serviceKey": "dWJUUKH9rYF9wr_UAPb6PQXW9h17G7dzuGCbiDhcyjCGgHzLwBp6QHOQhDg0FFxS24GD8nvw37oe_LOjl7ztNATYiVOd_ZEVHQpT",
     "secretKey": "Qh4XvuhSJbOp8nMV1JtibAUqjp3w_efBeFUfCmqQW_Nl8x4t3Sk6fWiK5L05CB3jhKZOgY5JlBSvWkFBHH_6fFhYQZWXNoZxO78w"
   }'
+```
+
+> <details><summary>Example output</summary>
+>
+>  ```json
+> {
+>    "timestamp": 1743084430294,
+>    "code": 200,
+>    "content": {
+>       "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXJ2aWNlS2V5IjoiTUxMZ1VQeG5uWkx4T0F1NXRibF9wOUJ4X0dLSkZXSkxWa2ljNGpIT2lyR0pqRF82ekViemNDb3NBaEN3N3pWX1ZBOWZQWXlfdmRSa1pMdWViVUFVb1FnakFQWkdQdUk5emFYZyIsImlhdCI6MTc0MzA4NDQzMDI5MywiZXhwIjoxNzQzMDg0NDMwNTkzfQ.GzPBpgVcoWO7ZeXwEXR9qD9hOgl5hCa1guZAD9kBsYY",
+>       "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXJ2aWNlS2V5IjoiTUxMZ1VQeG5uWkx4T0F1NXRibF9wOUJ4X0dLSkZXSkxWa2ljNGpIT2lyR0pqRF82ekViemNDb3NBaEN3N3pWX1ZBOWZQWXlfdmRSa1pMdWViVUFVb1FnakFQWkdQdUk5emFYZyIsImlhdCI6MTc0MzA4NDQzMDI5MywiZXhwIjoxNzQzMDg0NDMwNTkzfQ.GzPBpgVcoWO7ZeXwEXR9qD9hOgl5hCa1guZAD9kBsYY"
+>    }
+> }
+>
+>```
+Then use the following to authenticate the next curl request.
+
+```shell
+TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXJ2aWNlS2V5IjoiTUxMZ1VQeG5uWkx4T0F1NXRibF9wOUJ4X0dLSkZXSkxWa2ljNGpIT2lyR0pqRF82ekViemNDb3NBaEN3N3pWX1ZBOWZQWXlfdmRSa1pMdWViVUFVb1FnakFQWkdQdUk5emFYZyIsImlhdCI6MTc0MzA4NDQzMDI5MywiZXhwIjoxNzQzMDg0NDMwNTkzfQ.GzPBpgVcoWO7ZeXwEXR9qD9hOgl5hCa1guZAD9kBsYY
 ```
 
 ##### Exchange
@@ -488,26 +511,26 @@ To trigger an exchange between participants from the seeded data, you have a cou
 
 ```bash
 # Trigger exchange from the data provider's side
-curl -X POST http://host.docker.internal:3333/consumer/exchange \
+curl -X POST http://$GENERAL_URI:$PROVIDER_PDC_BINDING_PORT/consumer/exchange \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer ${JWT_TOKEN}" \
-  -d '{
-    "contract": "http://host.docker.internal:8888/contracts/67222aee85539771002f0abf",
-    "purposeId": "http://host.docker.internal:4040/v1/catalog/serviceofferings/66d18b79ee71f9f096baecb0",
-    "resourceId": "http://host.docker.internal:4040/v1/catalog/serviceofferings/66d187f4ee71f9f096bae8ca"
-  }'
+  -H "Authorization: Bearer $TOKEN" \
+  -d "{
+    \"contract\": \"http://$GENERAL_URI:$CONTRACT_BINDING_PORT/contracts/67222aee85539771002f0abf\",
+    \"purposeId\": \"http://$GENERAL_URI:$CATALOG_BINDING_PORT/v1/catalog/serviceofferings/66d18b79ee71f9f096baecb0\",
+    \"resourceId\": \"http://$GENERAL_URI:$CATALOG_BINDING_PORT/v1/catalog/serviceofferings/66d187f4ee71f9f096bae8ca\"
+  }"
 ```
 
 ```bash
 # Trigger exchange from the data consumer/service provider's side
-curl -X POST http://host.docker.internal:3335/consumer/exchange \
+curl -X POST http://$GENERAL_URI:$CONSUMER_PDC_BINDING_PORT/consumer/exchange \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer ${JWT_TOKEN}" \
-  -d '{
-    "contract": "http://host.docker.internal:8888/contracts/67222aee85539771002f0abf",
-    "purposeId": "http://host.docker.internal:4040/v1/catalog/serviceofferings/66d18b79ee71f9f096baecb0",
-    "resourceId": "http://host.docker.internal:4040/v1/catalog/serviceofferings/66d187f4ee71f9f096bae8ca"
-  }'
+  -H "Authorization: Bearer $TOKEN" \
+  -d "{
+    \"contract\": \"http://$GENERAL_URI:$CONTRACT_BINDING_PORT/contracts/67222aee85539771002f0abf\",
+    \"purposeId\": \"http://$GENERAL_URI:$CATALOG_BINDING_PORT/v1/catalog/serviceofferings/66d18b79ee71f9f096baecb0\",
+    \"resourceId\": \"http://$GENERAL_URI:$CATALOG_BINDING_PORT/v1/catalog/serviceofferings/66d187f4ee71f9f096bae8ca\"
+  }"
 ```
 
 ##### Consent based exchange
@@ -521,42 +544,29 @@ To run a Service Chain-based exchange, you can do so by running one of the follo
 2. Connect as the data provider or data consumer to his related PDC to retrieve the JWT as you will need it to authenticate these requests.
 
 ```bash
-# Trigger exchange from the data provider's side
-curl -X POST http://host.docker.internal:3333/consumer/exchange \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer  ${JWT_TOKEN}" \
-  -d '{
-    "contract": "http://host.docker.internal:8888/contracts/67222aee85539771002f0abf",
-    "purposeId": "http://host.docker.internal:4040/v1/catalog/serviceofferings/66d18b79ee71f9f096baecb0",
-    "resourceId": "http://host.docker.internal:4040/v1/catalog/serviceofferings/66d187f4ee71f9f096bae8ca",
-    "dataProcessingId": "67bf015e3182b4376cfe4d1c"
-  }'
-```
-
-```bash
 # Trigger exchange from the data consumer / service provider's side
-curl -X POST http://host.docker.internal:3333/consumer/exchange \
+curl -X POST http://$GENERAL_URI:$PROVIDER_PDC_BINDING_PORT/consumer/exchange \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer  ${JWT_TOKEN}" \
-  -d '{
-    "contract": "http://host.docker.internal:8888/contracts/67222aee85539771002f0abf",
-    "purposeId": "http://host.docker.internal:4040/v1/catalog/serviceofferings/66d18b79ee71f9f096baecb0",
-    "resourceId": "http://host.docker.internal:4040/v1/catalog/serviceofferings/66d187f4ee71f9f096bae8ca",
-    "dataProcessingId": "673ddc30f24a55c6c43b3e88"
-  }'
+  -H "Authorization: Bearer $TOKEN" \
+  -d "{
+    \"contract\": \"http://$GENERAL_URI:$CONTRACT_BINDING_PORT/contracts/67222aee85539771002f0abf\",
+    \"purposeId\": \"http://$GENERAL_URI:$CATALOG_BINDING_PORT/v1/catalog/serviceofferings/66d18b79ee71f9f096baecb0\",
+    \"resourceId\": \"http://$GENERAL_URI:$CATALOG_BINDING_PORT/v1/catalog/serviceofferings/66d187f4ee71f9f096bae8ca\",
+    \"dataProcessingId\": \"673ddc30f24a55c6c43b3e88\"
+  }"
 ```
 
 ```bash
 # Trigger exchange on consumer side
-curl -X POST http://host.docker.internal:3333/consumer/exchange \
+curl -X POST http://$GENERAL_URI:$PROVIDER_PDC_BINDING_PORT/consumer/exchange \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer ${JWT_TOKEN}" \
-  -d '{
-    "contract": "http://host.docker.internal:8888/contracts/67222aee85539771002f0abf",
-    "purposeId": "http://host.docker.internal:4040/v1/catalog/serviceofferings/66d18b79ee71f9f096baecb0",
-    "resourceId": "http://host.docker.internal:4040/v1/catalog/serviceofferings/66d187f4ee71f9f096bae8ca",
-    "dataProcessingId": "673ddca9db3b1ce116aec429"
-  }'
+  -H "Authorization: Bearer $TOKEN" \
+  -d "{
+    \"contract\": \"http://$GENERAL_URI:$CONTRACT_BINDING_PORT/contracts/67222aee85539771002f0abf\",
+    \"purposeId\": \"http://$GENERAL_URI:$CATALOG_BINDING_PORT/v1/catalog/serviceofferings/66d18b79ee71f9f096baecb0\",
+    \"resourceId\": \"http://$GENERAL_URI:$CATALOG_BINDING_PORT/v1/catalog/serviceofferings/66d187f4ee71f9f096bae8ca\",
+    \"dataProcessingId\": \"673ddca9db3b1ce116aec429\"
+  }"
 ```
 
 ## How to use a local pdc
@@ -601,7 +611,7 @@ cp ./images/provider-pdc/config.production.json ../your-connector-directory/src/
 > ```bash
 > # replace PORT and MONGO_URI
 > PORT=3333
-> MONGO_URI=mongodb://host.docker.internal:27018/ptx-provider
+> MONGO_URI=mongodb://$GENERAL_URI:27018/ptx-provider
 > ```
 >
 > ```bash
@@ -669,7 +679,7 @@ cp ./images/infrastructure-pdc/config.production.json ../your-connector-director
 > ```bash
 > # replace PORT and MONGO_URI
 > PORT=3337
-> MONGO_URI=mongodb://host.docker.internal:27018/ptx-infrastructure
+> MONGO_URI=mongodb://$GENERAL_URI:27018/ptx-infrastructure
 > ```
 >
 > ```bash
@@ -737,7 +747,7 @@ cp ./images/consumer-pdc/config.production.json ../your-connector-directory/src/
 > ```bash
 > # replace PORT and MONGO_URI
 > PORT=3335
-> MONGO_URI=mongodb://host.docker.internal:27018/ptx-consumer
+> MONGO_URI=mongodb://$GENERAL_URI:27018/ptx-consumer
 > ```
 >
 > ```bash
@@ -870,7 +880,7 @@ docker logs --follow consumer-api
 
 ```bash
 # Get all data exchanges
-curl -X GET http://host.docker.internal:3333/dataexchanges \
+curl -X GET http://$GENERAL_URI:$PROVIDER_PDC_BINDING_PORT/dataexchanges \
   -H "Content-Type: application/json"
 ```
 
@@ -891,14 +901,14 @@ curl -X GET http://host.docker.internal:3333/dataexchanges \
 > 			"_id": "67c60fc97b40f523e9ecdc5f",
 > 			"resources": [
 > 				{
-> 					"serviceOffering": "http://host.docker.internal:4040/v1/catalog/serviceofferings/66d187f4ee71f9f096bae8ca",
-> 					"resource": "http://ptx-catalog-api:3001/v1/catalog/dataresources/66d1889cee71f9f096bae98b",
+> 					"serviceOffering": "http://$GENERAL_URI:$CATALOG_BINDING_PORT/v1/catalog/serviceofferings/66d187f4ee71f9f096bae8ca",
+> 					"resource": "http://$GENERAL_URI:$CATALOG_BINDING_PORT/v1/catalog/dataresources/66d1889cee71f9f096bae98b",
 > 					"_id": "67c60fc97b40f523e9ecdc60"
 > 				}
 > 			],
-> 			"purposeId": "http://host.docker.internal:4040/v1/catalog/serviceofferings/66d18b79ee71f9f096baecb0",
-> 			"contract": "http://host.docker.internal:8888/contracts/67222aee85539771002f0abf",
-> 			"consumerEndpoint": "http://host.docker.internal:3335/",
+> 			"purposeId": "http://$GENERAL_URI:$CATALOG_BINDING_PORT/v1/catalog/serviceofferings/66d18b79ee71f9f096baecb0",
+> 			"contract": "http://$GENERAL_URI:$CONTRACT_BINDING_PORT/contracts/67222aee85539771002f0abf",
+> 			"consumerEndpoint": "http://$GENERAL_URI:$CONSUMER_PDC_BINDING_PORT/",
 > 			"status": "IMPORT_SUCCESS",
 > 			"createdAt": "2025-03-03T20:23:37.220Z",
 > 			"__v": 0,
@@ -912,7 +922,7 @@ curl -X GET http://host.docker.internal:3333/dataexchanges \
 
 ```bash
 # Get one data exchange
-curl -X GET http://host.docker.internal:3333/dataexchanges/67c60fc97b40f523e9ecdc5f \
+curl -X GET http://$GENERAL_URI:$PROVIDER_PDC_BINDING_PORT/dataexchanges/67c60fc97b40f523e9ecdc5f \
   -H "Content-Type: application/json"
 ```
 
@@ -932,14 +942,14 @@ curl -X GET http://host.docker.internal:3333/dataexchanges/67c60fc97b40f523e9ecd
 > 		"_id": "67c60fc97b40f523e9ecdc5f",
 > 		"resources": [
 > 			{
-> 				"serviceOffering": "http://host.docker.internal:4040/v1/catalog/serviceofferings/66d187f4ee71f9f096bae8ca",
-> 				"resource": "http://ptx-catalog-api:3001/v1/catalog/dataresources/66d1889cee71f9f096bae98b",
+> 				"serviceOffering": "http://$GENERAL_URI:$CATALOG_BINDING_PORT/v1/catalog/serviceofferings/66d187f4ee71f9f096bae8ca",
+> 				"resource": "http://$GENERAL_URI:$CATALOG_BINDING_PORT/v1/catalog/dataresources/66d1889cee71f9f096bae98b",
 > 				"_id": "67c60fc97b40f523e9ecdc60"
 > 			}
 > 		],
-> 		"purposeId": "http://host.docker.internal:4040/v1/catalog/serviceofferings/66d18b79ee71f9f096baecb0",
-> 		"contract": "http://host.docker.internal:8888/contracts/67222aee85539771002f0abf",
-> 		"consumerEndpoint": "http://host.docker.internal:3335/",
+> 		"purposeId": "http://$GENERAL_URI:$CATALOG_BINDING_PORT/v1/catalog/serviceofferings/66d18b79ee71f9f096baecb0",
+> 		"contract": "http://$GENERAL_URI:$CONTRACT_BINDING_PORT/contracts/67222aee85539771002f0abf",
+> 		"consumerEndpoint": "http://$GENERAL_URI:$CONSUMER_PDC_BINDING_PORT/",
 > 		"status": "IMPORT_SUCCESS",
 > 		"createdAt": "2025-03-03T20:23:37.220Z",
 > 		"__v": 0,
@@ -962,4 +972,27 @@ If you don't have the latest version of one of the services you can use the foll
 
 ```bash
 docker system prune -a
+```
+
+2. ***host.docker.internal or 172.17.0.1 not available***
+
+In case you face trouble using host.docker.internal for windows or 172.17.0.1 for linux you can replace the `GENERAL_URI` by the ip of the ptx-main network
+
+use `docker network inspect ptx-main` to retrieve the gateway ip of the network.
+
+3. ***Changing any port variable or the `GENERAL_URI` variable***
+
+When changing one of these variable you will need to rebuild after updated the configurations to sync all data and container with the right port and URI
+
+```shell
+./check-configuration
+```
+
+```shell
+docker compose --profile "*" down
+```
+
+
+```shell
+docker compose --profile "*" up -d --build
 ```

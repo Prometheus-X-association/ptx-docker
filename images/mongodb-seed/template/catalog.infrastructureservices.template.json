@@ -1,8 +1,7 @@
 [
   {
     "_id": {"$oid": "673cbc792180f6c65a503f11"},
-    "__v": 0,
-    "aggregationOf": ["http://host.docker.internal:4040/v1/catalog/softwareresources/679b78bde650f06f77f242a6"],
+    "aggregationOf": ["http://${GENERAL_URI}:${CATALOG_BINDING_PORT}${CATALOG_API_PREFIX}/catalog/softwareresources/679b78bde650f06f77f242a6"],
     "archived": false,
     "b2cDescription": [],
     "billingPeriod": "Monthly",
@@ -10,7 +9,6 @@
     "category": ["hard skills"],
     "compliantServiceOfferingVC": "",
     "costPerAPICall": 0,
-    "createdAt": {"$date": "2024-11-19T16:27:37.646Z"},
     "currency": "EUR",
     "dataAccountExport": [],
     "dataProtectionRegime": [],
@@ -36,7 +34,7 @@
             "container": "@language"
           }
         },
-        "id": "http://localhost:3000/static/references/rules/rule-access-1.json",
+        "id": "http://${GENERAL_URI}:${CATALOG_REGISTRY_BINDING_PORT}/static/references/rules/rule-access-1.json",
         "title": {
           "type": "xsd/string",
           "value": "No Restriction"
@@ -63,7 +61,7 @@
     ],
     "pricing": 10,
     "pricingDescription": "desc",
-    "pricingModel": ["http://localhost:3000/static/references/pricing-model/usageBased.json"],
+    "pricingModel": ["http://${GENERAL_URI}:${CATALOG_REGISTRY_BINDING_PORT}/static/references/pricing-model/usageBased.json"],
     "providedBy": "66d18a1dee71f9f096baec08",
     "purpose": "",
     "schema_version": "1.2.0",
